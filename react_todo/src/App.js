@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import './App.css';
 import {
   BrowserRouter as Router,
@@ -11,7 +12,6 @@ class App extends Component {
   constructor(props) {
     super(props);
     const todo = JSON.parse(localStorage.getItem('todo')) || [];
-    console.dir(todo);
     this.state = {
       todoItems: todo,
       newItem: ''
@@ -36,11 +36,7 @@ class App extends Component {
       todoItems: this.state.todoItems.map((x) => {
         if (x === todoToToggle) {
           const newTodo = {};
-          if (x.status){
-            x.status = 0;
-          }else{
-            x.status = 1;
-          }
+          x.status = x.status ? 0 : 1;
           Object.assign(newTodo, x, { status: x.status });
           return newTodo;
         }
@@ -82,7 +78,6 @@ class App extends Component {
 
         <Router>
           <div>
-            
             <Route exact path="/" name="all" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} items={this.state.todoItems} />} />
             <Route path="/active" name="active" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={0} items={this.state.todoItems} />} />
             <Route path="/completed" name="completed" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={1} items={this.state.todoItems} />} />
@@ -112,7 +107,16 @@ class ListComponent extends React.Component {
 
   render() {
     // console.log(this.props.items);
-    const currentItems = this.props.items.map((item, i) => {
+    const currentItems = this.props.items.filter((item, i) => {
+      switch (this.props.todoStatus) {
+        case 0:
+          return item.status === 0;
+        case 1:
+          return item.status === 1;
+        default:
+          return true;
+      }
+    }).map((item, i) => {
       const checked = item.status === 1 ? 'checked' : '';
       return (
         <li key={i}>
@@ -135,8 +139,13 @@ class ListComponent extends React.Component {
       </div>
     );
   }
-
 }
+ListComponent.propTypes = {
+  todoStatus: PropTypes.number,
+  items: PropTypes.array,
+  chkFunc: PropTypes.func,
+  deleteFunc: PropTypes.func,
+};
 
 
 
