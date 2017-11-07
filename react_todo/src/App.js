@@ -11,6 +11,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     const todo = JSON.parse(localStorage.getItem('todo')) || [];
+    console.dir(todo);
     this.state = {
       todoItems: todo,
       newItem: ''
@@ -20,6 +21,7 @@ class App extends Component {
     this.handleAdd = this.handleAdd.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
     this.inputFocus = this.inputFocus.bind(this);
+    this.handleCheck = this.handleCheck.bind(this);
   }
   handleEdit(e) {
     this.setState({ newItem: e.target.value });
@@ -29,9 +31,27 @@ class App extends Component {
       this.handleAdd();
     }
   }
+  handleCheck(todoToToggle) {
+    this.setState({
+      todoItems: this.state.todoItems.map((x) => {
+        if (x === todoToToggle) {
+          const newTodo = {};
+          if (x.status){
+            x.status = 0;
+          }else{
+            x.status = 1;
+          }
+          Object.assign(newTodo, x, { status: x.status });
+          return newTodo;
+        }
+        return x;
+      })
+    });
+    localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
+  }
   handleAdd() {
     if (this.state.newItem) {
-      const item = { name: this.state.newItem };
+      const item = { name: this.state.newItem, status: 0 };
       const newItems = this.state.todoItems.concat(item);
       this.setState({ todoItems: newItems });
       this.setState({ newItem: '' });
@@ -63,9 +83,9 @@ class App extends Component {
         <Router>
           <div>
             
-            <Route exact path="/" name="all" render={() => <ListComponent items={this.state.todoItems} />} />
-            <Route path="/active" name="active" render={() => <ListComponent todoStatus={0} items={this.state.todoItems} />} />
-            <Route path="/completed" name="completed" render={() => <ListComponent todoStatus={1} items={this.state.todoItems} />} />
+            <Route exact path="/" name="all" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} items={this.state.todoItems} />} />
+            <Route path="/active" name="active" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={0} items={this.state.todoItems} />} />
+            <Route path="/completed" name="completed" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={1} items={this.state.todoItems} />} />
 
             <ul>
               <li><Link to="/">All</Link></li>
@@ -87,34 +107,26 @@ class ListComponent extends React.Component {
 
   constructor(props) {
     super(props);
-    console.log(props);
+    // console.log(props);
   }
 
   render() {
     // console.log(this.props.items);
-    const currentItems = this.props.items.map((item, i) =>
-      <li key={i}>
-        <input type="checkbox" name="chk" />
-        {item.name}
-        <button onClick={() => this.handleDelete(i)}>delete</button>
-      </li>
+    const currentItems = this.props.items.map((item, i) => {
+      const checked = item.status === 1 ? 'checked' : '';
+      return (
+        <li key={i}>
+        <input 
+          type="checkbox" 
+          name="chk"
+          checked={checked}
+          onChange={this.props.chkFunc.bind(this, item)} />
+          {item.name}
+          <button onClick={() => this.props.deleteFunc(i)}>delete</button>
+        </li>
+      )}
     );
 
-    // const { query } = this.props.location;
-    // const { params } = this.props.match;
-    // const { article } = params;
-    // const { date, filter } = query;
-    // this.state.isAuthenticated? (
-    //    <Route children={this.props.children} />
-    //  ) : (
-    // 		<Redirect to={'/mypage'} />
-    //  )
-      //    {currentItems}
-    // {
-    //   this.props.route.items.map(fruit =>
-    //     <li key={fruit}>{fruit}</li>
-    //   )
-    // }
     return (
       <div>
         <ul>
