@@ -20,7 +20,7 @@ function isAuthenticated(e) {
   return !!firebase.auth().currentUser || !!localStorage.getItem(ID_TOKEN_KEY);
 }
 
-class App extends Component {
+class Todolist extends Component {
   constructor(props) {
     super(props);
     const todo = JSON.parse(localStorage.getItem('todo')) || [];
@@ -101,14 +101,14 @@ class App extends Component {
       <div>
         <Router>
           <div>
-            <button className="btn-logout" onClick={this.handleLogout}>Logout</button>
-            <input
-              type="text"
-              value={this.state.newItem}
-              onChange={this.handleEdit}
-              onKeyPress={this.handleKey}
-            />
-            <button onClick={this.handleAdd}>add</button>
+        <button className="btn-logout" onClick={this.handleLogout}>Logout</button>
+        <input
+          type="text"
+          value={this.state.newItem}
+          onChange={this.handleEdit}
+          onKeyPress={this.handleKey}
+        />
+        <button onClick={this.handleAdd}>add</button>
 
             <Route exact path="/" name="all" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} items={this.state.todoItems} />} />
             <Route path="/active" name="active" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={0} items={this.state.todoItems} />} />
@@ -126,7 +126,7 @@ class App extends Component {
     );
   }
 }
-export default App;
+export default Todolist;
 
 // const PrivateRoute = ({ component: Component, ...rest }) => (
 //   <Route {...rest} render={props => (
@@ -196,14 +196,3 @@ ListComponent.propTypes = {
 
 
 
-
-
-// <div className="App">
-//   <header className="App-header">
-//     <img src={logo} className="App-logo" alt="logo" />
-//     <h1 className="App-title">Welcome to React</h1>
-//   </header>
-//   <p className="App-intro">
-//     To get started, edit <code>src/App.js</code> and save to reload.
-//         </p>
-// </div>
