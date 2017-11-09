@@ -13,21 +13,18 @@ import {
 import createHistory from 'history/createBrowserHistory'
 const history = createHistory()
 
-firebase.initializeApp(firebaseConfig);
 const ID_TOKEN_KEY = 'KEY_FOR_LOCAL_STORAGE';
 
-function isAuthenticated(e) {
-  return !!firebase.auth().currentUser || !!localStorage.getItem(ID_TOKEN_KEY);
-}
 
 class Todolist extends Component {
   constructor(props) {
     super(props);
-    const todo = JSON.parse(localStorage.getItem('todo')) || [];
+    console.log("constructor===========");
     this.state = {
-      todoItems: todo,
+      todoItems: [],
       newItem: '',
-      isAuth:true
+      isAuth:true,
+      userID:''
     };
     this.handleEdit = this.handleEdit.bind(this);
     this.handleKey = this.handleKey.bind(this);
@@ -35,9 +32,40 @@ class Todolist extends Component {
     this.handleDelete = this.handleDelete.bind(this);
     this.inputFocus = this.inputFocus.bind(this);
     this.handleCheck = this.handleCheck.bind(this);
-    this.handleLogout = this.handleLogout.bind(this);
-    // this.isAuthenticated = this.isAuthenticated.bind(this);
+    this.unsubscribe;
   }
+  componentWillMount() {
+    console.log("componentWillMount===========");
+    var that = this;
+    this.unsubscribe = firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        console.log("user" + user);
+        that.setState({
+          userID: user.uid
+        });
+        let urlid = "users/" + user.uid;
+        console.log("urlid:" + urlid);
+        firebase.database().ref(urlid).once('value').then(function (snapshot) {
+          var objDate = snapshot.val();
+          console.log("==========getDatabase============");
+          console.dir(objDate.todoItems);
+          const todo = objDate.todoItems || [];
+          console.log(todo);
+          that.setState({
+            todoItems: todo
+          });
+        });
+      }
+    });
+  }
+
+  componentDidMount() {
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
 
   handleEdit(e) {
     this.setState({ newItem: e.target.value });
@@ -59,49 +87,53 @@ class Todolist extends Component {
         return x;
       })
     });
-    localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
+    let todoObj = {
+      todoItems: this.state.todoItems
+    };
+    this.updateDatabase(todoObj);
+    // localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
   }
   handleAdd() {
+    
     if (this.state.newItem) {
       const item = { name: this.state.newItem, status: 0 };
       const newItems = this.state.todoItems.concat(item);
+      let todoObj = {
+        todoItems: newItems
+      };
       this.setState({ todoItems: newItems });
       this.setState({ newItem: '' });
       this.inputFocus();
-      localStorage.setItem('todo', JSON.stringify(newItems));
+      this.updateDatabase(todoObj);
+      // localStorage.setItem('todo', JSON.stringify(newItems));
     }
   }
   handleDelete(i) {
     const tempItems = this.state.todoItems;
     tempItems.splice(i, 1);
     this.setState({ todoItems: tempItems });
+    let todoObj = {
+      todoItems: tempItems
+    };
     this.inputFocus();
-    localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
+    this.updateDatabase(todoObj);
+    // localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
   }
   inputFocus() {
     document.querySelector('input[type="text"]').focus();
   }
-  handleLogout() {
-    console.log("handleLogout");
-    firebase.auth().signOut();
-    console.dir(firebase.auth().currentUser);
-    history.push('/login');
-
+  updateDatabase(dataObj) {
+    let user = firebase.auth().currentUser;
+    if (!user) alert("There is no user account.");
+    return firebase.database().ref('users/' + user.uid).set(dataObj);
   }
 
 
   render() {
-    if (!isAuthenticated())
-      return (
-        <Router>
-          <Route exact path="/login" name="login" render={() => <LoginComponent isAuthenticatedFnc={this.isAuthenticated} />} />
-        </Router> );
-
     return (
       <div>
         <Router>
           <div>
-        <button className="btn-logout" onClick={this.handleLogout}>Logout</button>
         <input
           type="text"
           value={this.state.newItem}
@@ -127,19 +159,6 @@ class Todolist extends Component {
   }
 }
 export default Todolist;
-
-// const PrivateRoute = ({ component: Component, ...rest }) => (
-//   <Route {...rest} render={props => (
-//     isAuthenticated() ? (
-//       <Component {...props} />
-//     ) : (
-//         <Redirect to={{
-//           pathname: '/login/signin',
-//           state: { from: props.location }
-//         }} />
-//       )
-//   )} />
-// )
 
 
 class ListComponent extends React.Component {
