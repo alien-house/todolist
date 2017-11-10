@@ -1,25 +1,16 @@
 import React, { Component } from 'react';
-import LoginComponent from './Login';
 import PropTypes from 'prop-types';
 import './App.css';
-import { firebaseConfig } from "./Config";
-import * as firebase from "firebase";
+import { firebaseAuth, firebaseDB } from "./Config";
 import {
   BrowserRouter as Router,
-  Link,
-  Redirect,
+  NavLink,
   Route
 } from 'react-router-dom'
-import createHistory from 'history/createBrowserHistory'
-const history = createHistory()
-
-const ID_TOKEN_KEY = 'KEY_FOR_LOCAL_STORAGE';
-
 
 class Todolist extends Component {
   constructor(props) {
     super(props);
-    console.log("constructor===========");
     this.state = {
       todoItems: [],
       newItem: '',
@@ -32,25 +23,19 @@ class Todolist extends Component {
     this.handleDelete = this.handleDelete.bind(this);
     this.inputFocus = this.inputFocus.bind(this);
     this.handleCheck = this.handleCheck.bind(this);
-    this.unsubscribe;
+    this.unsubscribe = '';
   }
   componentWillMount() {
-    console.log("componentWillMount===========");
     var that = this;
-    this.unsubscribe = firebase.auth().onAuthStateChanged(function (user) {
+    this.unsubscribe = firebaseAuth().onAuthStateChanged(function (user) {
       if (user) {
-        console.log("user" + user);
         that.setState({
           userID: user.uid
         });
         let urlid = "users/" + user.uid;
-        console.log("urlid:" + urlid);
-        firebase.database().ref(urlid).once('value').then(function (snapshot) {
+        firebaseDB().ref(urlid).once('value').then(function (snapshot) {
           var objDate = snapshot.val();
-          console.log("==========getDatabase============");
-          console.dir(objDate.todoItems);
           const todo = objDate.todoItems || [];
-          console.log(todo);
           that.setState({
             todoItems: todo
           });
@@ -59,14 +44,9 @@ class Todolist extends Component {
     });
   }
 
-  componentDidMount() {
-  }
-
   componentWillUnmount() {
     this.unsubscribe();
   }
-
-
   handleEdit(e) {
     this.setState({ newItem: e.target.value });
   }
@@ -82,6 +62,7 @@ class Todolist extends Component {
           const newTodo = {};
           x.status = x.status ? 0 : 1;
           Object.assign(newTodo, x, { status: x.status });
+          
           return newTodo;
         }
         return x;
@@ -91,7 +72,6 @@ class Todolist extends Component {
       todoItems: this.state.todoItems
     };
     this.updateDatabase(todoObj);
-    // localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
   }
   handleAdd() {
     
@@ -105,7 +85,6 @@ class Todolist extends Component {
       this.setState({ newItem: '' });
       this.inputFocus();
       this.updateDatabase(todoObj);
-      // localStorage.setItem('todo', JSON.stringify(newItems));
     }
   }
   handleDelete(i) {
@@ -117,59 +96,60 @@ class Todolist extends Component {
     };
     this.inputFocus();
     this.updateDatabase(todoObj);
-    // localStorage.setItem('todo', JSON.stringify(this.state.todoItems));
   }
   inputFocus() {
     document.querySelector('input[type="text"]').focus();
   }
   updateDatabase(dataObj) {
-    let user = firebase.auth().currentUser;
+    let user = firebaseAuth().currentUser;
     if (!user) alert("There is no user account.");
-    return firebase.database().ref('users/' + user.uid).set(dataObj);
+    return firebaseDB().ref('users/' + user.uid).set(dataObj);
   }
 
-
   render() {
-    return <div className="todolist">
-        <Router>
-          <div>
-            <div className="todo-input-box">
-              <input type="text" className="todo-input" value={this.state.newItem} onChange={this.handleEdit} onKeyPress={this.handleKey} />
+    return <Router>
+        <div className="todo-wrap">
+          <div className="todo">
+            <div className="todo-box">
+              <div className="todo-input-box">
+                <input type="text" className="todo-input" placeholder="Add something to do..." value={this.state.newItem} onChange={this.handleEdit} onKeyPress={this.handleKey} />
+              </div>
+              <button className="btn-add" onClick={this.handleAdd}>
+                Add
+              </button>
             </div>
-            <button onClick={this.handleAdd}>Add</button>
 
             <Route exact path="/" name="all" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} items={this.state.todoItems} />} />
             <Route path="/active" name="active" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={0} items={this.state.todoItems} />} />
             <Route path="/completed" name="completed" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={1} items={this.state.todoItems} />} />
-
-            <ul>
-              <li>
-                <Link to="/">All</Link>
-              </li>
-              <li>
-                <Link to="/active">Active</Link>
-              </li>
-              <li>
-                <Link to="/completed">Completed</Link>
-              </li>
-            </ul>
           </div>
-        </Router>
-      </div>;
+          <ul className="filterNav">
+            <li>
+              <NavLink activeClassName="active" to="/">
+                All
+              </NavLink>
+            </li>
+            <li>
+              <NavLink activeClassName="active" to="/active">
+                Active
+              </NavLink>
+            </li>
+            <li>
+              <NavLink activeClassName="active" to="/completed">
+                Completed
+              </NavLink>
+            </li>
+          </ul>
+        </div>
+      </Router>;
   }
 }
 export default Todolist;
 
 
+
 class ListComponent extends React.Component {
-
-  constructor(props) {
-    super(props);
-    // console.log(props);
-  }
-
   render() {
-    // console.log(this.props.items);
     const currentItems = this.props.items.filter((item, i) => {
       switch (this.props.todoStatus) {
         case 0:
@@ -181,22 +161,24 @@ class ListComponent extends React.Component {
       }
     }).map((item, i) => {
       const checked = item.status === 1 ? 'checked' : '';
-      return (
-        <li key={i}>
-        <input 
-          type="checkbox" 
-          name="chk"
-          checked={checked}
-          onChange={this.props.chkFunc.bind(this, item)} />
-          {item.name}
-          <button onClick={() => this.props.deleteFunc(i)}>delete</button>
-        </li>
-      )}
+      const checkedClass = item.status === 1 ? 'seleted' : '';
+      return <li className={"list-item " + checkedClass} key={i}>
+          <div className="list-item-txt">
+            <label className="checkbox-container">
+              <input type="checkbox" name="chk" checked={checked} onChange={this.props.chkFunc.bind(this, item)} />
+              <span className="checkmark" />
+              {item.name}
+            </label>
+          </div>
+          <button className="btn-delete" onClick={() => this.props.deleteFunc(i)}>
+            Delete
+          </button>
+        </li>;}
     );
 
     return (
-      <div>
-        <ul>
+      <div className="list-wrap">
+        <ul className="list">
           {currentItems}
         </ul>
       </div>

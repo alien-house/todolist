@@ -1,23 +1,21 @@
-import React, { Component } from 'react';
-import * as firebase from "firebase";
+import React from 'react';
+import { firebaseAuth, firebaseDB } from "./Config";
+import "./Login.css";
 import {
-    BrowserRouter as Router,
     Redirect,
     Route
 } from 'react-router-dom'
-import { TweenMax, Power2, TimelineLite } from "gsap";
+// import { TweenMax, Power2, TimelineLite } from "gsap";
 import FontAwesome from "react-fontawesome";
 
-const provider = new firebase.auth.GithubAuthProvider();
+const provider = new firebaseAuth.GithubAuthProvider();
 
 export default class LoginComponent extends React.Component {
     render() {
-        return (
-            <div>
-                <Route path="/login/signin" name="signin" component={SigninComponent} />
-                <Route path="/login/signup" name="signup" component={SignupComponent} />
-            </div>
-        );
+        return <div>
+            <Route exact path="/login/signin" name="signin" component={SigninComponent} />
+            <Route exact path="/login/signup" name="signup" component={SignupComponent} />
+          </div>;
     }
 }
 
@@ -49,55 +47,47 @@ class SigninComponent extends React.Component {
             alert('please something input');
             return;
         }
-        firebase.auth().signInWithEmailAndPassword(email, password)
+        firebaseAuth().signInWithEmailAndPassword(email, password)
             .then(function (firebaseUser) {
-                var user = firebase.auth().currentUser;
+                var user = firebaseAuth().currentUser;
                 if (user) {
-                    console.log("user:"+user);
                     self.setState({ redirectToReferrer: true })
                 }
             })
             .catch(function (error) {
-                var errorCode = error.code;
-                var errorMessage = error.message;
+                // var errorCode = error.code;
+                // var errorMessage = error.message;
             });
     }
     handleGitHub(event) {
         let self = this;
-        firebase.auth().signInWithPopup(provider).then(function (result) {
-            // This gives you a GitHub Access Token. You can use it to access the GitHub API.
-            var token = result.credential.accessToken;
-            // The signed-in user info.
+        firebaseAuth().signInWithPopup(provider).then(function (result) {
+           
+            // var token = result.credential.accessToken;
             var user = result.user;
-            console.log("token:user");
-            console.dir(user);
 
             //データがない場合は作成
             let urlid = "users/" + user.uid;
-            console.log("urlid:" + urlid);
-            firebase.database().ref(urlid).once('value').then(function (snapshot) {
+            firebaseDB()
+              .ref(urlid)
+              .once("value")
+              .then(function(snapshot) {
                 var objDate = snapshot.val();
-                console.log("objDate::"+objDate);
-                
-                if (!objDate){
-                    let dataObj = {
-                        todolist: ""
-                    };
-                    firebase.database().ref('users/' + user.uid).set(dataObj);
-                }
-                self.setState({ redirectToReferrer: true })
 
-            });
+                if (!objDate) {
+                  let dataObj = { todolist: "" };
+                  firebaseDB()
+                    .ref("users/" + user.uid)
+                    .set(dataObj);
+                }
+                self.setState({ redirectToReferrer: true });
+              });
 
         }).catch(function (error) {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            // The email of the user's account used.
-            var email = error.email;
-            // The firebase.auth.AuthCredential type that was used.
-            var credential = error.credential;
-            // ...
+            // var errorCode = error.code;
+            // var errorMessage = error.message;
+            // var email = error.email;
+            // var credential = error.credential;
         });
   
     }
@@ -106,7 +96,6 @@ class SigninComponent extends React.Component {
         const { from } = this.props.location.state || { from: { pathname: '/' } }
         const { redirectToReferrer } = this.state
         if (redirectToReferrer) {
-            console.log("ある？");
             return (
                 <Redirect to={from} />
             )
@@ -179,13 +168,15 @@ class SignupComponent extends React.Component {
             return;
         }
 
-        firebase.auth().createUserWithEmailAndPassword(email, password)
+        firebaseAuth().createUserWithEmailAndPassword(email, password)
             .then(function (user) {
                 let dataObj = {
                     todolist: ""
                 };
                 self.setState({ redirectToReferrer: true })
-                firebase.database().ref('users/' + user.uid).set(dataObj);
+                firebaseDB()
+                  .ref("users/" + user.uid)
+                  .set(dataObj);
 
                 alert('Your account has created!');
 
@@ -199,22 +190,19 @@ class SignupComponent extends React.Component {
                 }
             });
 
-
         event.preventDefault();
     }
     render() {
-        return (
-            <div>
-                <form onSubmit={this.handleSubmit}>
-                    <div className="form-input-box">
-                        <input type="text" name="email" className="form-input" placeholder="E-Mail" value={this.state.value} onChange={this.handleChange} />
-                    </div>
-                    <div className="form-input-box">
-                        <input type="password" name="password" className="form-input" placeholder="Password" value={this.state.value} onChange={this.handleChange} />
-                    </div>
-                    <button className="btn-submit">Register</button>
-                </form>
-            </div>
-        );
+        return <div className="login-box">
+            <form onSubmit={this.handleSubmit}>
+              <div className="form-input-box">
+                <input type="text" name="email" className="form-input" placeholder="E-Mail" value={this.state.value} onChange={this.handleChange} />
+              </div>
+              <div className="form-input-box">
+                <input type="password" name="password" className="form-input" placeholder="Password" value={this.state.value} onChange={this.handleChange} />
+              </div>
+              <button className="btn-submit">Register</button>
+            </form>
+          </div>;
     }
 }

@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
 import LoginComponent from './Login';
 import TodoListComponent from './Todolist';
-import PropTypes from 'prop-types';
 import './App.css';
-import { firebaseConfig } from "./Config";
-import * as firebase from "firebase";
+import { firebaseAuth } from "./Config";
 import {
   BrowserRouter as Router,
   Link,
@@ -14,14 +12,13 @@ import {
 import createHistory from 'history/createBrowserHistory'
 const history = createHistory()
 
-firebase.initializeApp(firebaseConfig);
 const ID_TOKEN_KEY = 'KEY_FOR_LOCAL_STORAGE';
 
 function isAuthenticated(e) {
-  return !!firebase.auth().currentUser || !!localStorage.getItem(ID_TOKEN_KEY);
+  return !!firebaseAuth().currentUser || !!localStorage.getItem(ID_TOKEN_KEY);
 }
 function requireAuth(getIsLogin) {
-  firebase.auth().onAuthStateChanged(function (user) {
+  firebaseAuth().onAuthStateChanged(function (user) {
     if (user) {
       localStorage.setItem(ID_TOKEN_KEY, user.uid);
       getIsLogin(user.uid);
@@ -46,15 +43,11 @@ class App extends Component {
     this.handleLogout = this.handleLogout.bind(this);
   }
   handleLogout() {
-    console.log("handleLogout");
-    console.dir(firebase.auth().currentUser);
-    firebase.auth().signOut();
+    firebaseAuth().signOut();
     history.push('/login/signin');
   }
   render() {
-    console.log(this.state.uid);
-    return (
-      <Router>
+    return <Router>
         <div className="app">
           <h1 className="title">TODO LIST</h1>
           <div className="container">
@@ -63,22 +56,23 @@ class App extends Component {
               <button style={{ display: this.state.uid ? "" : "none" }} className="cRight btn-logout" onClick={this.handleLogout}>
                 Logout
               </button>
-              <button style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup">
-                <Link to="/">Sign up</Link>
-              </button>
+                <Link style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup" to="/login/signup">
+                  Sign up
+                </Link>
+                <Link style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup" to="/login/signin">
+                  Sign in
+                </Link>
             </div>
 
-            <Route exact path="/login/signin" name="login" component={LoginComponent} />
+            <Route path="/login/" name="login" component={LoginComponent} />
             <PrivateRoute exact path="/" name="home" component={TodoListComponent} />
           </div>
         </div>
-      </Router>
-    );
+      </Router>;
   }
 }
 export default App;
 
-// <Route exact path="/" name="todo" render={() => <TodoListComponent />} />
 const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route {...rest} render={props => (
     isAuthenticated() ? (
