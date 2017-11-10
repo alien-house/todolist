@@ -3,6 +3,7 @@ import LoginComponent from './Login';
 import TodoListComponent from './Todolist';
 import './App.css';
 import { firebaseAuth } from "./Config";
+import FontAwesome from "react-fontawesome";
 import {
   BrowserRouter as Router,
   Link,
@@ -33,46 +34,97 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isAuth:true,
+      loading: true,
+      isAuth: true,
       uid: null
     };
-    const getIsLogin = (uid) => {
+    const getIsLogin = uid => {
       this.setState({ uid: uid });
-    }
+    };
+    // const changeLoaderState = loadState => {
+    //   this.setState({ loading: loadState });
+    // };
+
     requireAuth(getIsLogin);
     this.handleLogout = this.handleLogout.bind(this);
+    this.changeLoaderState = this.changeLoaderState.bind(this);
+  }
+  changeLoaderState(loadState) {
+      this.setState({ loading: loadState });
   }
   handleLogout() {
     firebaseAuth().signOut();
-    history.push('/login/signin');
+    history.push("/login/signin");
   }
   render() {
-    return <Router>
+    return (
+      <Router>
         <div className="app">
           <h1 className="title">TODO LIST</h1>
           <div className="container">
             <div className="header">
               <div className="header-dec" />
-              <button style={{ display: this.state.uid ? "" : "none" }} className="cRight btn-logout" onClick={this.handleLogout}>
+              <button
+                style={{ display: this.state.uid ? "" : "none" }}
+                className="cRight btn-logout"
+                onClick={this.handleLogout}
+              >
                 Logout
               </button>
-                <Link style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup" to="/login/signup">
-                  Sign up
-                </Link>
-                <Link style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup" to="/login/signin">
-                  Sign in
-                </Link>
+              <Link
+                style={{ display: this.state.uid ? "none" : "" }}
+                className="cRight btn-signup"
+                to="/login/signup"
+              >
+                Sign up
+              </Link>
+              <Link
+                style={{ display: this.state.uid ? "none" : "" }}
+                className="cRight btn-signup"
+                to="/login/signin"
+              >
+                Sign in
+              </Link>
             </div>
+            <Loader isActive={this.state.loading} />
 
-            <Route path="/login/" name="login" component={LoginComponent} />
-            <PrivateRoute exact path="/" name="home" component={TodoListComponent} />
+            <Route
+              path="/login/"
+              name="login"
+              render={() => (
+                <LoginComponent changeLoaderState={this.changeLoaderState} />
+              )}
+            />
+            <PrivateRoute
+              exact
+              path="/"
+              name="home"
+              component={TodoListComponent}
+              changeLoaderState={this.changeLoaderState}
+            />
           </div>
         </div>
-      </Router>;
+      </Router>
+    );
   }
 }
 export default App;
 
+const Loader = props => ({
+  render: function() {
+    if (this.props.isActive) 
+    return (
+    <div className = "loadering-wrap" >
+      <div className = "loadering" >
+      <div className = "loadering-inner">
+      < FontAwesome name="github"className = "loader-icon"/>
+      </div> 
+      </div>
+    </div>
+    );
+    else return null;
+  }
+});
 const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route {...rest} render={props => (
     isAuthenticated() ? (

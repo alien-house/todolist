@@ -13,11 +13,27 @@ const provider = new firebaseAuth.GithubAuthProvider();
 export default class LoginComponent extends React.Component {
     render() {
         return <div>
-            <Route exact path="/login/signin" name="signin" component={SigninComponent} />
+            <PropsRoute exact path="/login/signin" name="signin" component={SigninComponent} changeLoaderState={this.props.changeLoaderState} />
+
             <Route exact path="/login/signup" name="signup" component={SignupComponent} />
           </div>;
     }
 }
+const renderMergedProps = (component, ...rest) => {
+  const finalProps = Object.assign({}, ...rest);
+  return React.createElement(component, finalProps);
+};
+
+const PropsRoute = ({ component, ...rest }) => {
+  return (
+    <Route
+      {...rest}
+      render={routeProps => {
+        return renderMergedProps(component, routeProps, rest);
+      }}
+    />
+  );
+};
 
 class SigninComponent extends React.Component {
     constructor() {
@@ -41,6 +57,7 @@ class SigninComponent extends React.Component {
 
     handleSubmit(event) {
         let self = this;
+        this.props.changeLoaderState(true);
         let email = this.state.email;
         let password = this.state.password;
         if (email === undefined || password === undefined) {
@@ -52,6 +69,7 @@ class SigninComponent extends React.Component {
                 var user = firebaseAuth().currentUser;
                 if (user) {
                     self.setState({ redirectToReferrer: true })
+                    self.props.changeLoaderState(false);
                 }
             })
             .catch(function (error) {
