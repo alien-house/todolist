@@ -54,19 +54,25 @@ class App extends Component {
   render() {
     console.log(this.state.uid);
     return (
-        <Router>
+      <Router>
+        <div className="app">
+          <h1 className="title">TODO LIST</h1>
           <div className="container">
             <div className="header">
-              <div className="header-dec"></div>
-              <button style={{ display: this.state.uid ? '' : 'none' }} className="cRight btn-logout" onClick={this.handleLogout}>Logout</button>
-              <button style={{ display: this.state.uid ? 'none' : '' }} className="cRight btn-signup"><Link to="/">Sign up</Link></button>
+              <div className="header-dec" />
+              <button style={{ display: this.state.uid ? "" : "none" }} className="cRight btn-logout" onClick={this.handleLogout}>
+                Logout
+              </button>
+              <button style={{ display: this.state.uid ? "none" : "" }} className="cRight btn-signup">
+                <Link to="/">Sign up</Link>
+              </button>
             </div>
 
             <Route exact path="/login/signin" name="login" component={LoginComponent} />
             <PrivateRoute exact path="/" name="home" component={TodoListComponent} />
           </div>
-        </Router>
-
+        </div>
+      </Router>
     );
   }
 }

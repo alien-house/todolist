@@ -5,6 +5,8 @@ import {
     Redirect,
     Route
 } from 'react-router-dom'
+import { TweenMax, Power2, TimelineLite } from "gsap";
+import FontAwesome from "react-fontawesome";
 
 const provider = new firebase.auth.GithubAuthProvider();
 
@@ -109,21 +111,28 @@ class SigninComponent extends React.Component {
                 <Redirect to={from} />
             )
         }
-        return (
-            <div className="login-box">
-                <div className="form-input-box">
-                    <input type="text" name="email" placeholder="E-Mail" className="form-input" value={this.state.value} onChange={this.handleChange} />
-                </div>
-                <div className="form-input-box">
-                    <input type="password" name="password" placeholder="Password" className="form-input" value={this.state.value} onChange={this.handleChange} />
-                </div>
-                <button className="btn-submit" onClick={this.handleSubmit}>Login</button>
-                <p>or</p>
-                <button onClick={this.handleGitHub}>Github</button>
-                <button>Twitter</button>
-                <button>facebook</button>
+        return <div className="login-box">
+            <div className="form-input-box">
+              <input type="text" name="email" placeholder="E-Mail" className="form-input" value={this.state.value} onChange={this.handleChange} />
             </div>
-        );
+            <div className="form-input-box">
+              <input type="password" name="password" placeholder="Password" className="form-input" value={this.state.value} onChange={this.handleChange} />
+            </div>
+            <button className="btn-submit" onClick={this.handleSubmit}>
+              Login
+            </button>
+            <div className="line-or">or</div>
+            <button className="btn-social btn-social--github" onClick={this.handleGitHub}>
+              <FontAwesome name="github" className="icon" />
+              Github Login
+            </button>
+            <button className="btn-social btn-social--twitter" onClick={this.handleGitHub}>
+              <FontAwesome name="twitter" className="icon" />Twitter Login
+            </button>
+            <button className="btn-social btn-social--facebook" onClick={this.handleGitHub}>
+              <FontAwesome name="facebook" className="icon" />facebook Login
+            </button>
+          </div>;
     }
 }
 

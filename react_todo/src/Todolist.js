@@ -130,32 +130,32 @@ class Todolist extends Component {
 
 
   render() {
-    return (
-      <div>
+    return <div className="todolist">
         <Router>
           <div>
-        <input
-          type="text"
-          value={this.state.newItem}
-          onChange={this.handleEdit}
-          onKeyPress={this.handleKey}
-        />
-        <button onClick={this.handleAdd}>add</button>
+            <div className="todo-input-box">
+              <input type="text" className="todo-input" value={this.state.newItem} onChange={this.handleEdit} onKeyPress={this.handleKey} />
+            </div>
+            <button onClick={this.handleAdd}>Add</button>
 
             <Route exact path="/" name="all" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} items={this.state.todoItems} />} />
             <Route path="/active" name="active" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={0} items={this.state.todoItems} />} />
             <Route path="/completed" name="completed" render={() => <ListComponent chkFunc={this.handleCheck} deleteFunc={this.handleDelete} todoStatus={1} items={this.state.todoItems} />} />
 
             <ul>
-              <li><Link to="/">All</Link></li>
-              <li><Link to="/active">Active</Link></li>
-              <li><Link to="/completed">Completed</Link></li>
+              <li>
+                <Link to="/">All</Link>
+              </li>
+              <li>
+                <Link to="/active">Active</Link>
+              </li>
+              <li>
+                <Link to="/completed">Completed</Link>
+              </li>
             </ul>
           </div>
         </Router>
-
-        </div>
-    );
+      </div>;
   }
 }
 export default Todolist;
