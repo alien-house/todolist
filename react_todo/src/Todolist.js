@@ -29,6 +29,7 @@ class Todolist extends Component {
     var that = this;
     this.unsubscribe = firebaseAuth().onAuthStateChanged(function (user) {
       if (user) {
+        that.props.changeLoaderState(true);
         that.setState({
           userID: user.uid
         });
@@ -39,6 +40,7 @@ class Todolist extends Component {
           that.setState({
             todoItems: todo
           });
+          that.props.changeLoaderState(false);
         });
       }
     });

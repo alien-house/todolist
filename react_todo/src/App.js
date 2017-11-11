@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import LoginComponent from './Login';
 import TodoListComponent from './Todolist';
 import './App.css';
-import { firebaseAuth } from "./Config";
+import {firebaseAuth} from "./Config";
+import { TweenLite } from "gsap";
 import FontAwesome from "react-fontawesome";
 import {
   BrowserRouter as Router,
@@ -34,7 +35,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loading: true,
+      loading: false,
       isAuth: true,
       uid: null
     };
@@ -50,13 +51,29 @@ class App extends Component {
     this.changeLoaderState = this.changeLoaderState.bind(this);
   }
   changeLoaderState(loadState) {
-      this.setState({ loading: loadState });
+    var loadering = document.getElementById("loadering");
+    this.setState({ loading: loadState });
+    if (loadState) {
+      TweenLite.to(loadering, 0.5, { autoAlpha: 1 });
+    }else{
+      TweenLite.to(loadering, 0.5, { autoAlpha: 0 });
+    }
   }
   handleLogout() {
     firebaseAuth().signOut();
     history.push("/login/signin");
   }
+  componentDidMount() {
+    var loadering = document.getElementById("loadering");
+    if (this.state.loading) {
+      TweenLite.to(loadering, 1, { autoAlpha: 1 });
+    } else {
+      TweenLite.to(loadering, 1, { autoAlpha: 0 });
+    }
+  }
+
   render() {
+
     return (
       <Router>
         <div className="app">
@@ -86,8 +103,15 @@ class App extends Component {
                 Sign in
               </Link>
             </div>
-            <Loader isActive={this.state.loading} />
 
+            <div id="loadering" className="loadering-wrap">
+              <div className="loadering">
+                <div className="loadering-inner">
+                  <FontAwesome name="truck" className="loader-icon" />
+                </div>
+              </div>
+            </div>
+            
             <Route
               path="/login/"
               name="login"
@@ -110,25 +134,33 @@ class App extends Component {
 }
 export default App;
 
-const Loader = props => ({
-  render: function() {
-    if (this.props.isActive) 
-    return (
-    <div className = "loadering-wrap" >
-      <div className = "loadering" >
-      <div className = "loadering-inner">
-      < FontAwesome name="github"className = "loader-icon"/>
-      </div> 
-      </div>
-    </div>
-    );
-    else return null;
-  }
-});
+
+// <Loader isActive={this.state.loading} />
+// const Loader = props => ({
+//   render: function() {
+//     if (this.props.isActive) 
+//     return (
+//     <div className="loadering-wrap">
+//       <div className="loadering">
+//       <div className="loadering-inner">
+//       <FontAwesome name="truck" className="loader-icon" />
+//       </div> 
+//       </div>
+//     </div>
+//     );
+//     else return null;
+//   }
+// });
+
+const renderMergedProps = (component, ...rest) => {
+  const finalProps = Object.assign({}, ...rest);
+  return React.createElement(component, finalProps);
+};
+
 const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route {...rest} render={props => (
     isAuthenticated() ? (
-      <Component {...props} />
+      renderMergedProps(Component, props, rest)
     ) : (
         <Redirect to={{
           pathname: '/login/signin',

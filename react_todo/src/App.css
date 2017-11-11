@@ -321,13 +321,17 @@ vertical-align: middle;
 }
 .loader-icon {
   font-size: 3rem;
-  color: #333;
+  color: #434558;
+  animation: App-icon-spin infinite 0.4s linear;
 }
-
+@keyframes App-icon-spin {
+  from { transform: translateY(0); }
+  to { transform: translateY(2px); }
+} 
 
 
 /* .App-logo {
-  animation: App-logo-spin infinite 20s linear;
+  animation: App-icon-spin infinite 20s linear;
   height: 80px;
 }
 
@@ -346,7 +350,7 @@ vertical-align: middle;
   font-size: large;
 }
 
-@keyframes App-logo-spin {
+@keyframes App-icon-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 } */

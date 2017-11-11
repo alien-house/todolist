@@ -8,8 +8,6 @@ import {
 // import { TweenMax, Power2, TimelineLite } from "gsap";
 import FontAwesome from "react-fontawesome";
 
-const provider = new firebaseAuth.GithubAuthProvider();
-
 export default class LoginComponent extends React.Component {
     render() {
         return <div>
@@ -41,6 +39,8 @@ class SigninComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleGitHub = this.handleGitHub.bind(this);
+        this.handleTwitter = this.handleTwitter.bind(this);
+        this.handleFacebook = this.handleFacebook.bind(this);
         this.state = {
             redirectToReferrer: false
         };
@@ -77,37 +77,57 @@ class SigninComponent extends React.Component {
                 // var errorMessage = error.message;
             });
     }
+
+
     handleGitHub(event) {
         let self = this;
-        firebaseAuth().signInWithPopup(provider).then(function (result) {
-           
-            // var token = result.credential.accessToken;
-            var user = result.user;
+        const provider = new firebaseAuth.GithubAuthProvider();
+        this.signInSocial(self, provider);
+    }
+    handleTwitter(event) {
+        let self = this;
+        const provider = new firebaseAuth.TwitterAuthProvider();
+        this.signInSocial(self, provider);
+    }
+    handleFacebook(event) {
+        let self = this;
+        const provider = new firebaseAuth.FacebookAuthProvider();
+        this.signInSocial(self, provider);
+    }
 
+    signInSocial(self, provider) {
+        firebaseAuth().signInWithPopup(provider).then(function (result) {
+            // var token = result.credential.accessToken;
+            let user = result.user;
             //データがない場合は作成
             let urlid = "users/" + user.uid;
-            firebaseDB()
-              .ref(urlid)
-              .once("value")
-              .then(function(snapshot) {
-                var objDate = snapshot.val();
-
-                if (!objDate) {
-                  let dataObj = { todolist: "" };
-                  firebaseDB()
-                    .ref("users/" + user.uid)
-                    .set(dataObj);
-                }
-                self.setState({ redirectToReferrer: true });
-              });
-
+            firebaseDB().ref(urlid).once("value")
+                .then(function (snapshot) {
+                    let objData = snapshot.val();
+                    self.createUserData(self, user, objData);
+                });
         }).catch(function (error) {
-            // var errorCode = error.code;
-            // var errorMessage = error.message;
-            // var email = error.email;
-            // var credential = error.credential;
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            var email = error.email;
+            var credential = error.credential;
+            console.log("errorCode: " + errorCode);
+            console.log("errorCode: " + errorMessage);
+            console.log("errorCode: " + email);
+            console.log("errorCode: " + credential);
         });
-  
+    }
+    
+
+
+    createUserData(self, user, objData) {
+        if (!objData) {
+            let dataObj = { todolist: "" };
+            firebaseDB()
+                .ref("users/" + user.uid)
+                .set(dataObj);
+        }
+        self.setState({ redirectToReferrer: true });
     }
 
     render() {
@@ -133,10 +153,10 @@ class SigninComponent extends React.Component {
               <FontAwesome name="github" className="icon" />
               Github Login
             </button>
-            <button className="btn-social btn-social--twitter" onClick={this.handleGitHub}>
+            <button className="btn-social btn-social--twitter" onClick={this.handleTwitter}>
               <FontAwesome name="twitter" className="icon" />Twitter Login
             </button>
-            <button className="btn-social btn-social--facebook" onClick={this.handleGitHub}>
+            <button className="btn-social btn-social--facebook" onClick={this.handleFacebook}>
               <FontAwesome name="facebook" className="icon" />facebook Login
             </button>
           </div>;
