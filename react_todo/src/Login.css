@@ -1,0 +1,86 @@
+/* =================================
+    Login
+================================= */
+.login-box {
+    width: 340px;
+    margin: 0 auto;
+    padding: 40px 0 0;
+}
+
+.form-input-box {
+    background: #4c506b;
+    border-radius: 3px;
+    padding: 12px;
+    margin: 0 0 10px;
+}
+
+.form-input {
+    border: none;
+    color: #fff !important;
+    width: 100%;
+    font-size: 1.0rem;
+    background: transparent !important;
+    -webkit-appearance: none;
+}
+
+input:-webkit-autofill {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    -webkit-box-shadow: 0 0 0px 1000px #4c506b inset;
+}
+
+.btn-submit {
+    margin: 15px auto 0;
+    padding: 12px 40px;
+    color: #404254;
+    background: #cfd1e6;
+}
+
+.line-or {
+    position: relative;
+    padding: 15px 0;
+    text-align: center;
+    color: #9597a4;
+}
+
+.line-or:before,
+.line-or:after {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 150px;
+    border-top: #cfd0d7 solid 1px;
+    top: 23px;
+}
+
+.line-or:after {
+    right: 0;
+}
+
+.btn-social {
+    color: #fff;
+    font-size: 0.9rem;
+    width: 100%;
+    height: 46px;
+    line-height: 1.8;
+    position: relative;
+    margin: 0 0 10px;
+}
+
+.icon {
+    font-size: 1.5rem;
+    position: absolute;
+    left: 15px;
+}
+
+.btn-social--github {
+    background: #24292e;
+}
+
+.btn-social--twitter {
+    background: #1da1f2;
+}
+
+.btn-social--facebook {
+    background: #4867aa;
+}
